@@ -27,7 +27,7 @@
   There exist two requirements files one for production and one for development.
 
 ```bash
-        pip install -r <Path_to_file>\requirements-dev.txt
+        pip install -r requirements.txt
 ```
 
 - deactivate:
@@ -35,3 +35,17 @@
 ```bash
         deactivate
 ```
+
+# requirements:
+- No more than 20 success can exist in the airport during the day. 
+- Success for a flight is if no more than 20 success happens in a day and the difference between the
+arrival and departure is greater or equal than 180 minutes
+- If there is no success put ‘fail’ in the success column either wise ‘success’
+- Flights should be sorted by arrival time.
+
+1) Pls write down
+Python (JAVA OR C# also can be acceptable) code that produce the success column
+
+2)Write 2 rest API
+GET - to get info about a flight
+POST - update the csv file with flights as an input
