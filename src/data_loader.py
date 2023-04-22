@@ -30,7 +30,7 @@ class DataLoader:
         
             return {'message': 'Flight not found.'}
     
-    def update_source_file(self, flights: list[Flight]) -> dict:
+    def update_flight_info(self, flights: list[Flight]) -> dict:
         """Updates a CSV file with the flight information provided.
 
         Args:
@@ -40,7 +40,7 @@ class DataLoader:
             A dictionary with a single key-value pair: {'message': 'Flights updated successfully.'}
 
         Raises:
-            ValueError: If the flights data is empty.
+            ValueError: If the flights data is empty or the same flight exist.
         """
         try:
             if not flights:
