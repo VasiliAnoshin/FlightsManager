@@ -1,6 +1,5 @@
 import pandas as pd
 import csv
-from src.schemas import Flight
 import numpy as np
 from logging import Logger
 
@@ -38,33 +37,4 @@ class DataLoader:
             Logger.info(f'Unexpected error.  Exception: {ex} ')
             return {'message': f'Unexpected error.  For more information check logs.'}
     
-    def update_flight_info(self, flights: list[Flight]) -> dict:
-        """Updates a CSV file with the flight information provided.
-
-        Args:
-            flights: A list of Flight objects containing the updated flight information.
-
-        Returns:
-            A dictionary with a single key-value pair: {'message': 'Flights updated successfully.'}
-
-        Raises:
-            ValueError: If the flights data is empty or the same flight exist.
-        """
-        try:
-            if not flights:
-                raise ValueError('Flights data is empty')
-            df = self.load_full_data()
-            for flight in flights:
-                if df['Flight ID'].isin([flight.flight_id]).any():
-                    raise ValueError(f'flight with the same flight id - {flight.flight_id} already registered.')
-                else:
-                    df = df.append({'Flight ID': flight.flight_id, 
-                                    'Arrival': flight.arrival, 
-                                    'Departure': flight.departure, 
-                                    'success': np.nan}, 
-                              ignore_index= True)
-            df.to_csv(self.file, index=False)
-            return {'message': 'Flights updated successfully.'}
-        except Exception as ex:
-            Logger.info(f'Unexpected error.  Exception: {ex} ')
-            return {'message': f'Unexpected error.  For more information check logs.'}
+    
