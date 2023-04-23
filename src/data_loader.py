@@ -2,13 +2,17 @@ import pandas as pd
 import csv
 from src.schemas import Flight
 import numpy as np
+from logging import Logger
 
 class DataLoader:
     def __init__(self, path_to_file:str) -> None:
         self.file = path_to_file
     
     def load_full_data(self) -> pd.DataFrame:
-        return pd.read_csv(self.file)
+        try:
+            return pd.read_csv(self.file)
+        except Exception as ex:
+            Logger.info(f'Unexpected error.  Exception: {ex} ')
     
     def load_flight_info(self, flight_id:int) -> dict:
         """Loads flight information from a CSV file.
@@ -22,13 +26,17 @@ class DataLoader:
             flight with the specified ID is not found in the file, the function returns
             a dictionary with a single key-value pair: {'message': 'Flight not found.'}
         """
-        with open(self.file, mode='r', encoding='utf-8-sig') as csv_file:
-            csv_reader = csv.DictReader(csv_file)
-            for row in csv_reader:
-                if row['Flight ID'] == flight_id:
-                    return row
-        
-            return {'message': 'Flight not found.'}
+        try:
+            with open(self.file, mode='r', encoding='utf-8-sig') as csv_file:
+                csv_reader = csv.DictReader(csv_file)
+                for row in csv_reader:
+                    if row['Flight ID'] == flight_id:
+                        return row
+            
+                return {'message': 'Flight not found.'}
+        except Exception as ex:
+            Logger.info(f'Unexpected error.  Exception: {ex} ')
+            return {'message': f'Unexpected error.  For more information check logs.'}
     
     def update_flight_info(self, flights: list[Flight]) -> dict:
         """Updates a CSV file with the flight information provided.
@@ -45,14 +53,18 @@ class DataLoader:
         try:
             if not flights:
                 raise ValueError('Flights data is empty')
-            df = pd.read_csv(self.file)
+            df = self.load_full_data()
             for flight in flights:
                 if df['Flight ID'].isin([flight.flight_id]).any():
                     raise ValueError(f'flight with the same flight id - {flight.flight_id} already registered.')
                 else:
-                    df = df.append({'Flight ID': flight.flight_id, 'Arrival': flight.arrival, 'Departure': flight.departure, 'success': np.nan}, 
+                    df = df.append({'Flight ID': flight.flight_id, 
+                                    'Arrival': flight.arrival, 
+                                    'Departure': flight.departure, 
+                                    'success': np.nan}, 
                               ignore_index= True)
-            df.to_csv(self.file, header=False, index=False)
+            df.to_csv(self.file, index=False)
             return {'message': 'Flights updated successfully.'}
         except Exception as ex:
-            raise ex
+            Logger.info(f'Unexpected error.  Exception: {ex} ')
+            return {'message': f'Unexpected error.  For more information check logs.'}
