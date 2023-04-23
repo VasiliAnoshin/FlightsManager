@@ -2,8 +2,10 @@ import pandas as pd
 import os
 from src.schemas import Flight
 import numpy as np
-from logging import Logger
+import logging
 import datetime
+from fastapi import HTTPException
+logger = logging.getLogger(__name__)
 
 class FlightManager:
     # Define the maximum number of successes allowed per day
@@ -36,6 +38,14 @@ class FlightManager:
             return False
 
     def generarte_success_column(self) -> pd.DataFrame:
+        """Generates a 'success' column in the DataFrame based on the arrival and departure times.
+        The 'Arrival' and 'Departure' columns are converted to datetime objects and sorted by arrival time.
+        A new column 'success' is generated using the '_is_success' method.
+        The 'Arr' and 'Dep' columns are dropped and the index is reset.
+        
+        Returns:
+        pd.DataFrame: The updated flight data with the 'success' column added.
+        """
         try:
             self.flight_data['Arr'] = pd.to_datetime(self.flight_data['Arrival'], format='%H:%M')
             self.flight_data['Dep'] = pd.to_datetime(self.flight_data['Departure'], format='%H:%M')
@@ -46,11 +56,18 @@ class FlightManager:
             self.flight_data = self.flight_data.reset_index(drop=True)
             return self.flight_data 
         except Exception as ex:
+            logger.info(f'Unexpected error.  Exception: {ex} ')
             raise ex
 
-    #TODO add check for date arrival/departure
-    def update_flight_info(self, flights: list[Flight], df:pd.DataFrame, file_path:str) -> dict:
-        """Updates a CSV file with the flight information provided.
+    def update_flight_info(self, flights: list[Flight], df:pd.DataFrame) -> dict:
+        """adding the provided flights to an existing dataframe and returns the updated dataframe.
+
+        Args:
+        flights (list[Flight]): A list of Flight objects containing the flight information to be added.
+        df (pd.DataFrame): The existing dataframe that needs to be updated with the flight information.
+
+        Returns:
+        dict: The updated dataframe containing the newly added flight information.
         """
         try:
             if not flights:
@@ -59,20 +76,19 @@ class FlightManager:
                 if df['Flight ID'].isin([flight.flight_id]).any():
                     raise ValueError(f'flight with the same flight id - {flight.flight_id} already registered.')
                 elif not self.is_valid_time_format(flight.arrival): 
-                    return {'message': 'Invalid arrival time format'}
+                    raise ValueError('Invalid arrival time format')
                 elif not self.is_valid_time_format(flight.departure): 
-                    return {'message': 'Invalid departure time format'} 
+                    raise ValueError('Invalid departure time format') 
                 else:
                     df = df.append({'Flight ID': flight.flight_id, 
                                     'Arrival': flight.arrival, 
                                     'Departure': flight.departure, 
                                     'success': np.nan}, 
                               ignore_index= True)
-            df.to_csv(file_path, index=False)
-            return {'message': 'Flights updated successfully.'}
+            return df
         except Exception as ex:
-            Logger.info(f'Unexpected error.  Exception: {ex} ')
-            return {'message': f'Unexpected error.  For more information check logs.'}
+            logger.info(f'Unexpected error.  Exception: {ex.args[0]} ')
+            raise HTTPException(status_code=500, detail=ex.args[0])
 
 if __name__ == '__main__':
     ...
