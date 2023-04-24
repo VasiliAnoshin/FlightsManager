@@ -8,10 +8,14 @@ class DataLoader:
         self.file = path_to_file
     
     def load_full_data(self) -> pd.DataFrame:
-        try:
-            return pd.read_csv(self.file)
-        except Exception as ex:
-            Logger.info(f'Unexpected error.  Exception: {ex} ')
+        """
+        Load the full data from a CSV file and return it as a pandas DataFrame.
+
+        Returns:
+        A pandas DataFrame containing the full data from the CSV file.
+
+        """
+        return pd.read_csv(self.file)
     
     def load_flight_info(self, flight_id:int) -> dict:
         """Loads flight information from a CSV file.

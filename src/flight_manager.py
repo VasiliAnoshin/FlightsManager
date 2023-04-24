@@ -1,11 +1,9 @@
 import pandas as pd
-import os
 from src.schemas import Flight
 import numpy as np
-import logging
 import datetime
 from fastapi import HTTPException
-logger = logging.getLogger(__name__)
+from src.log import logger
 
 class FlightManager:
     # Define the maximum number of successes allowed per day
@@ -30,12 +28,20 @@ class FlightManager:
         else:
             return 'Fail'
 
-    def is_valid_time_format(self, time_str):
+    def _is_valid_time_format(self, time_str:str) -> bool:
         try:
             datetime.datetime.strptime(time_str, '%H:%M')
             return True
         except ValueError:
             return False
+        
+    def _in_valid_range(self, time_str:str)->bool:
+        try:
+            time = datetime.datetime.strptime(time_str, "%H:%M").time()
+            return datetime.time(0, 0) <= time <= datetime.time(23, 59)
+        except Exception:
+            return False
+
 
     def generarte_success_column(self) -> pd.DataFrame:
         """Generates a 'success' column in the DataFrame based on the arrival and departure times.
@@ -69,26 +75,23 @@ class FlightManager:
         Returns:
         dict: The updated dataframe containing the newly added flight information.
         """
-        try:
-            if not flights:
-                raise ValueError('Flights data is empty')
-            for flight in flights:
-                if df['Flight ID'].isin([flight.flight_id]).any():
-                    raise ValueError(f'flight with the same flight id - {flight.flight_id} already registered.')
-                elif not self.is_valid_time_format(flight.arrival): 
-                    raise ValueError('Invalid arrival time format')
-                elif not self.is_valid_time_format(flight.departure): 
-                    raise ValueError('Invalid departure time format') 
-                else:
-                    df = df.append({'Flight ID': flight.flight_id, 
-                                    'Arrival': flight.arrival, 
-                                    'Departure': flight.departure, 
-                                    'success': np.nan}, 
-                              ignore_index= True)
-            return df
-        except Exception as ex:
-            logger.info(f'Unexpected error.  Exception: {ex.args[0]} ')
-            raise HTTPException(status_code=500, detail=ex.args[0])
+        if not flights:
+            raise ValueError('Flights data is empty')
+        for flight in flights:
+            if df['Flight ID'].isin([flight.flight_id]).any():
+                raise ValueError(f'flight with the same flight id - {flight.flight_id} already registered.')
+            elif not self._is_valid_time_format(flight.arrival) and not self._in_valid_range(flight.arrival):  
+                raise ValueError('Invalid arrival time format')
+            elif not self._is_valid_time_format(flight.departure) and not self._in_valid_range(flight.departure): 
+                raise ValueError('Invalid departure time format') 
+            else:
+                df = df.append({'Flight ID': flight.flight_id, 
+                                'Arrival': flight.arrival, 
+                                'Departure': flight.departure, 
+                                'success': np.nan}, 
+                            ignore_index= True)
+        return df
+
 
 if __name__ == '__main__':
     ...
