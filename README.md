@@ -36,7 +36,7 @@
         deactivate
 ```
 
-# requirements:
+# Requirements:
 - No more than 20 success can exist in the airport during the day. 
 - Success for a flight is if no more than 20 success happens in a day and the difference between the
 arrival and departure is greater or equal than 180 minutes
