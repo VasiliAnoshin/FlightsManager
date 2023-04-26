@@ -1,6 +1,6 @@
 # FlightsManager 💡
  
-## run project in virtual environment 🚀
+## Run project in virtual environment 🚀
 
 - Create virtual env:
 
