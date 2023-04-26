@@ -24,7 +24,6 @@
   should include Python interpreter related to your environment
 - refresh terminal
 - install requirements:
-  There exist two requirements files one for production and one for development.
 
 ```bash
         pip install -r requirements.txt
